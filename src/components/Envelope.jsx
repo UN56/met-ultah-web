@@ -1,263 +1,300 @@
 import { useState, useEffect, useRef } from "react";
-import { animate, stagger } from "animejs";
+import { animate } from "animejs";
+
+const CONFIG = {
+  recipient: "Nama Dia",
+  sender: "Nama Kamu",
+  wishTitle: "my wish for you!",
+  wishText: `Selamat ulang tahun, sayang! Semoga tahun ini bawa banyak hal baik buat kamu, lebih bahagia, lebih tenang, dan makin dekat sama semua yang kamu mau. Seneng banget bisa ada di sampingmu dan lihat kamu tumbuh sejauh ini. Sehat terus ya. Semoga hari ini sederhana tapi berarti.`,
+};
 
 export default function Envelope() {
-  const [opened, setOpened] = useState(false);
-  const [showLetter, setShowLetter] = useState(false);
-  const envelopeRef = useRef(null);
+  const [step, setStep] = useState(0); 
+  const [showGallery, setShowGallery] = useState(false); 
+  
+  const wrapperRef = useRef(null);
+  const layer1Ref = useRef(null); 
+  const layer3Ref = useRef(null); 
   const flapRef = useRef(null);
   const letterRef = useRef(null);
-  const heartsRef = useRef([]);
+  const hintRef = useRef(null);
+  const galleryHintRef = useRef(null); // Ref baru khusus tulisan di kanan
+  const frontTextRef = useRef(null);
+  const sideTextRef = useRef(null);
+  const overlayRef = useRef(null); 
 
-  // Entrance animation
   useEffect(() => {
-    animate(envelopeRef.current, {
-      translateY: [-60, 0],
+    if (!wrapperRef.current || !hintRef.current) return;
+
+    animate(wrapperRef.current, {
+      translateY: [60, 0],
       opacity: [0, 1],
-      duration: 900,
+      duration: 1200, 
       easing: "cubicBezier(0.34, 1.56, 0.64, 1)",
     });
-  }, []);
 
-  const handleOpen = () => {
-    if (opened) return;
-    setOpened(true);
-
-    // Flap buka
-    animate(flapRef.current, {
-      rotateX: [0, -180],
-      duration: 600,
-      easing: "easeInOutQuart",
-    });
-
-    // Surat keluar
     setTimeout(() => {
-      setShowLetter(true);
-      setTimeout(() => {
-        animate(letterRef.current, {
-          translateY: [40, -110],
+      if (hintRef.current) {
+        animate(hintRef.current, {
           opacity: [0, 1],
-          duration: 700,
-          easing: "cubicBezier(0.34, 1.56, 0.64, 1)",
-        });
-      }, 50);
-
-      // Hearts muncul
-      setTimeout(() => {
-        animate(".heart", {
-          translateY: [0, -120],
-          opacity: [1, 0],
-          scale: [0.5, 1.2],
-          delay: stagger(120),
-          duration: 900,
+          duration: 800,
           easing: "easeOutExpo",
         });
-      }, 400);
-    }, 500);
+      }
+    }, 1100);
+  }, []);
+
+  useEffect(() => {
+    if (showGallery && overlayRef.current) {
+      animate(overlayRef.current, {
+        opacity: [0, 1],
+        duration: 800,
+        easing: "easeInOutQuad"
+      });
+    }
+  }, [showGallery]);
+
+  const handleClick = () => {
+    if (step === 0) {
+      setStep(1);
+      
+      // Ngilangin text "tap to open" pertama di bawah
+      if (hintRef.current) {
+        animate(hintRef.current, { opacity: [1, 0], duration: 300 });
+      }
+
+      // Amplopnya dinaikin dikit dari sebelumnya (180 -> 155)
+      animate(wrapperRef.current, {
+        translateY: [0, 155],
+        duration: 1200,
+        easing: "easeInOutQuart",
+      });
+      
+      animate(flapRef.current, {
+        rotateX: [0, -180], 
+        duration: 1000,
+        easing: "easeInOutQuart",
+      });
+
+      if (frontTextRef.current) {
+        animate(frontTextRef.current, { opacity: [1, 0], duration: 500 });
+      }
+
+      setTimeout(() => {
+        if (sideTextRef.current) {
+          animate(sideTextRef.current, { 
+            opacity: [0, 1], 
+            translateX: [-30, 0],
+            duration: 1200,
+            easing: "easeOutQuart"
+          });
+        }
+      }, 500);
+
+      setTimeout(() => {
+        if (letterRef.current) {
+          animate(letterRef.current, {
+            translateY: [0, -145], // Disesuaikan biar pas sama amplop
+            opacity: [0, 1],
+            duration: 1200, 
+            easing: "cubicBezier(0.34, 1.56, 0.64, 1)",
+          });
+        }
+        
+        // Munculin text "tap to open gallery" di sebelah KANAN amplop
+        setTimeout(() => {
+          if (galleryHintRef.current) {
+            animate(galleryHintRef.current, { 
+              opacity: [0, 1], 
+              translateX: [-10, 0], 
+              duration: 600,
+              easing: "easeOutQuad"
+            });
+          }
+        }, 1200);
+      }, 700); 
+    } 
+    else if (step === 1) {
+      setShowGallery(true);
+    }
   };
 
   return (
-    <div
-      style={{
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=EB+Garamond&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        @keyframes blink {
+          0%, 100% { opacity: 0.5; }
+          50% { opacity: 1; }
+        }
+        @keyframes floatUpDown {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
+
+      <div style={{
         minHeight: "100vh",
-        background: "linear-gradient(135deg, #fce4ec 0%, #f8bbd0 50%, #f48fb1 100%)",
+        background: "#c0392b",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "'Georgia', serif",
         overflow: "hidden",
-        position: "relative",
-      }}
-    >
-      {/* Background dots */}
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          style={{
-            position: "absolute",
-            width: i % 3 === 0 ? "8px" : "4px",
-            height: i % 3 === 0 ? "8px" : "4px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.4)",
-            top: `${10 + (i * 7.5)}%`,
-            left: `${5 + (i * 8)}%`,
-          }}
-        />
-      ))}
-
-      <p style={{
-        color: "#ad1457",
-        fontSize: "14px",
-        letterSpacing: "3px",
-        textTransform: "uppercase",
-        marginBottom: "32px",
-        opacity: 0.7,
       }}>
-        ada sesuatu untukmu ✨
-      </p>
 
-      {/* Envelope wrapper */}
-      <div ref={envelopeRef} style={{ position: "relative", opacity: 0 }}>
+        <div 
+          ref={wrapperRef} 
+          style={{ 
+            position: "relative", 
+            width: "300px", 
+            height: "200px",
+            opacity: 0,
+            transform: "scale(1.4)", 
+            cursor: step === 0 ? "pointer" : step === 1 ? "pointer" : "default"
+          }}
+          onClick={handleClick}
+        >
 
-        {/* Hearts */}
-        <div style={{ position: "absolute", top: "-20px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "16px", zIndex: 10 }}>
-          {["❤️", "🩷", "💕"].map((h, i) => (
-            <span key={i} className="heart" style={{ fontSize: "22px", opacity: 0 }}>{h}</span>
-          ))}
-        </div>
-
-        {/* Letter (behind envelope) */}
-        {showLetter && (
-          <div
-            ref={letterRef}
-            style={{
-              position: "absolute",
-              top: "10px",
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "220px",
-              background: "#fff9f9",
-              borderRadius: "8px",
-              padding: "24px 20px",
-              zIndex: 1,
-              opacity: 0,
-              boxShadow: "0 4px 20px rgba(173,20,87,0.1)",
-              textAlign: "center",
-              border: "1px solid #fce4ec",
-            }}
-          >
-            <p style={{ fontSize: "20px", marginBottom: "8px" }}>🎂</p>
-            <p style={{ color: "#ad1457", fontWeight: "bold", fontSize: "15px", marginBottom: "8px" }}>
-              Happy Birthday!
-            </p>
-            <p style={{ color: "#880e4f", fontSize: "13px", lineHeight: "1.6" }}>
-              Semoga hari ini jadi hari yang paling indah buat kamu 🌸
+          {/* Teks Kanan Amplop (Tap to open gallery) */}
+          <div ref={galleryHintRef} style={{ 
+            position: "absolute", 
+            right: "-95px", // Jarak ke kanan amplop
+            top: "90px", 
+            opacity: 0, 
+            pointerEvents: "none",
+            zIndex: 10
+          }}>
+            <p style={{ 
+              fontFamily: "Georgia, serif", 
+              fontSize: "10px", 
+              color: "#ffffff", 
+              letterSpacing: "1.5px", 
+              textTransform: "uppercase", 
+              textAlign: "left",
+              lineHeight: "1.6",
+              textShadow: "0 2px 4px rgba(0,0,0,0.3)", // Kasih shadow biar makin jelas bacaannya
+              animation: "blink 2s ease-in-out infinite" 
+            }}>
+              tap to<br/>open<br/>gallery ➔
             </p>
           </div>
+
+          <div ref={sideTextRef} style={{ position: "absolute", left: "-160px", top: "50px", opacity: 0, textAlign: "right", pointerEvents: "none" }}>
+            <p style={{ fontFamily: "Georgia, serif", fontStyle: "italic", fontSize: "16px", color: "rgba(255,255,255,0.9)" }}>Happy Birthday</p>
+            <p style={{ fontFamily: "Georgia, serif", fontSize: "11px", color: "rgba(255,255,255,0.7)", letterSpacing: "1px", marginTop: "4px" }}>to {CONFIG.recipient}</p>
+          </div>
+
+          <div ref={layer1Ref} style={{ position: "absolute", zIndex: 1, width: "100%", height: "100%" }}>
+            <svg width="300" height="200" viewBox="0 0 300 200" style={{ filter: "drop-shadow(0 16px 40px rgba(0,0,0,0.3))", overflow: "visible" }}>
+              <rect width="300" height="200" rx="3" fill="#dce8f0" />
+              <g ref={flapRef} style={{ transformOrigin: "150px 0px", transformBox: "fill-box" }}>
+                <polygon points="-1,0 301,0 150,110" fill="#e8f2f8" />
+                <line x1="0" y1="0" x2="150" y2="110" stroke="#c8d9e8" strokeWidth="0.8" />
+                <line x1="300" y1="0" x2="150" y2="110" stroke="#c8d9e8" strokeWidth="0.8" />
+              </g>
+            </svg>
+          </div>
+
+          <div style={{ position: "absolute", zIndex: 2, width: "100%", height: "100%", pointerEvents: "none" }}>
+            <div ref={letterRef} style={{
+              position: "absolute", bottom: "5px", left: "50%", marginLeft: "-110px",
+              opacity: 0, background: "#f5f0ea", width: "220px", 
+              padding: "25px 18px 45px", 
+              boxShadow: "0 10px 40px rgba(0,0,0,0.25)",
+            }}>
+              <div style={{ textAlign: "center", fontSize: "16px", marginBottom: "10px", color: "#c0392b" }}>✦</div>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "17px", color: "#1a1a1a", textAlign: "center", marginBottom: "10px" }}>{CONFIG.wishTitle}</p>
+              <p style={{ fontFamily: "'EB Garamond', Georgia, serif", fontSize: "11px", color: "#333", lineHeight: "1.8", textAlign: "justify" }}>{CONFIG.wishText}</p>
+              <p style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: "italic", fontSize: "13px", color: "#c0392b", marginTop: "12px", textAlign: "right" }}>Love, {CONFIG.sender} ♥</p>
+            </div>
+          </div>
+
+          <div ref={layer3Ref} style={{ position: "absolute", zIndex: 3, width: "100%", height: "100%", pointerEvents: "none" }}>
+            <svg width="300" height="200" viewBox="0 0 300 200" style={{ overflow: "visible" }}>
+              <polygon points="-1,-1 -1,201 150,105" fill="#c8d9e8" /> 
+              <polygon points="301,-1 301,201 150,105" fill="#c8d9e8" />
+              <polygon points="-1,201 301,201 150,105" fill="#b8cfe0" />
+              <g ref={frontTextRef}>
+                <text x="150" y="125" textAnchor="middle" fill="#8aadcc" fontSize="10" fontFamily="Georgia, serif" fontStyle="italic">Happy Birthday</text>
+                <text x="150" y="140" textAnchor="middle" fill="#9fbdcf" fontSize="8" fontFamily="Georgia, serif" letterSpacing="1.5">to {CONFIG.recipient}</text>
+              </g>
+            </svg>
+          </div>
+
+        </div>
+
+        {/* Text Hint Bawah (Awal) */}
+        {!showGallery && (
+          <p ref={hintRef} style={{
+            opacity: 0,
+            marginTop: "80px",
+            color: "rgba(255,255,255,0.8)", 
+            fontSize: "11px",
+            letterSpacing: "3px",
+            textTransform: "uppercase",
+            fontFamily: "Georgia, serif",
+            animation: "floatUpDown 2s ease-in-out infinite", // Animasi naik turun dikit
+          }}>
+            tap to open
+          </p>
         )}
 
-        {/* Envelope body */}
-        <div
-          onClick={handleOpen}
-          style={{
-            position: "relative",
-            zIndex: 5,
-            cursor: opened ? "default" : "pointer",
-            width: "280px",
-          }}
-        >
-          {/* Envelope back */}
-          <div style={{
-            width: "280px",
-            height: "180px",
-            background: "linear-gradient(145deg, #f06292, #e91e8c)",
-            borderRadius: "8px",
-            position: "relative",
-            boxShadow: "0 20px 60px rgba(173,20,87,0.35)",
-            overflow: "hidden",
-          }}>
-
-            {/* Bottom triangle */}
-            <div style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              width: 0,
-              height: 0,
-              borderLeft: "140px solid transparent",
-              borderRight: "140px solid transparent",
-              borderBottom: "100px solid #e91e63",
-            }} />
-
-            {/* Left triangle */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: 0,
-              height: 0,
-              borderTop: "90px solid #ec407a",
-              borderRight: "140px solid transparent",
-            }} />
-
-            {/* Right triangle */}
-            <div style={{
-              position: "absolute",
-              top: 0,
-              right: 0,
-              width: 0,
-              height: 0,
-              borderTop: "90px solid #ec407a",
-              borderLeft: "140px solid transparent",
-            }} />
-
-            {/* Flap (top triangle) */}
-            <div
-              ref={flapRef}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                transformOrigin: "top center",
-                zIndex: 6,
-              }}
-            >
-              <div style={{
-                width: 0,
-                height: 0,
-                borderLeft: "140px solid transparent",
-                borderRight: "140px solid transparent",
-                borderTop: "100px solid #f48fb1",
-                filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))",
-              }} />
-            </div>
-
-            {/* Seal */}
-            {!opened && (
-              <div style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                width: "36px",
-                height: "36px",
-                background: "#fff",
-                borderRadius: "50%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "18px",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.15)",
-                zIndex: 7,
-              }}>
-                💌
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
-      {!opened && (
-        <p style={{
-          marginTop: "28px",
-          color: "#ad1457",
-          fontSize: "13px",
-          letterSpacing: "1px",
-          opacity: 0.6,
-          animation: "pulse 2s infinite",
-        }}>
-          klik untuk membuka ↑
-        </p>
-      )}
+      {showGallery && (
+        <div 
+          ref={overlayRef}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            backgroundColor: "rgba(0, 0, 0, 0.75)", 
+            zIndex: 50,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: 0,
+            cursor: "pointer"
+          }}
+          onClick={() => setShowGallery(false)} 
+        >
+          <div style={{ display: "flex", gap: "15px", marginBottom: "35px" }}>
+            
+            <div style={{
+              background: "#fff", padding: "12px 12px 35px 12px",
+              boxShadow: "0 15px 40px rgba(0,0,0,0.5)",
+              transform: "rotate(-4deg) translateY(10px)",
+            }}>
+              <div style={{ width: "130px", height: "150px", background: "#e0d8d0", display: "flex", alignItems: "center", justifyContent: "center", color: "#b0a898", fontSize: "11px", fontFamily: "Georgia, serif" }}>foto 1</div>
+            </div>
 
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.6; transform: translateY(0); }
-          50% { opacity: 1; transform: translateY(-4px); }
-        }
-      `}</style>
-    </div>
+            <div style={{
+              background: "#fff", padding: "12px 12px 35px 12px",
+              boxShadow: "0 15px 40px rgba(0,0,0,0.5)",
+              transform: "rotate(5deg) translateY(-10px)",
+            }}>
+              <div style={{ width: "130px", height: "150px", background: "#e0d8d0", display: "flex", alignItems: "center", justifyContent: "center", color: "#b0a898", fontSize: "11px", fontFamily: "Georgia, serif" }}>foto 2</div>
+            </div>
+
+          </div>
+
+          <p style={{
+            color: "#fff",
+            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontStyle: "italic",
+            fontSize: "22px",
+            letterSpacing: "1px",
+            textShadow: "0 2px 10px rgba(0,0,0,0.8)"
+          }}>
+            "for more beautiful moments with you."
+          </p>
+        </div>
+      )}
+    </>
   );
 }
