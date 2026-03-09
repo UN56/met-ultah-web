@@ -5,7 +5,7 @@ const CONFIG = {
   recipient: "Nama Dia",
   sender: "Nama Kamu",
   wishTitle: "my wish for you!",
-  wishText: `Selamat ulang tahun, sayang! Semoga tahun ini bawa banyak hal baik buat kamu, lebih bahagia, lebih tenang, dan makin dekat sama semua yang kamu mau. Seneng banget bisa ada di sampingmu dan lihat kamu tumbuh sejauh ini. Sehat terus ya. Semoga hari ini sederhana tapi berarti.`,
+  wishText: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.`,
 };
 
 export default function Envelope() {
